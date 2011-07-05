@@ -122,7 +122,7 @@ class Translate::Storage
     init_translations_and_ignore_app_mode_file_dump
 
     # List of locale where the translation will be looked for
-    locales = options[:locales] || ([self.locale] + I18n.valid_locales)
+    locales = options[:locales] || ([self.locale] + I18n.available_locales)
 
     # First locale to try
     current_locale = locales.first
@@ -160,7 +160,7 @@ class Translate::Storage
     # Get the current yaml file list sorted
     files = (I18n.load_path + Dir.glob(File.join("config", "locales", "**","*.{rb,yml}"))).uniq.sort
     # Avoid application mode file paths
-    files -= I18n.valid_locales.map{|l| application_mode_file_path(l)}
+    files -= I18n.available_locales.map{|l| application_mode_file_path(l)}
     # Load the new translation file list
     I18n.load_path = files
     # Reset I18n to track the updated file list

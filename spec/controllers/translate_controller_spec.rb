@@ -10,7 +10,7 @@ describe TranslateController do
       keys.stub!(:i18n_keys).and_return(['vendor.foobar'])
       Translate::Keys.should_receive(:new).and_return(keys)
       Translate::Keys.should_receive(:files).and_return(files)
-      I18n.stub!(:valid_locales).and_return([:en, :sv])
+      I18n.stub!(:available_locales).and_return([:en, :sv])
       I18n.stub!(:default_locale).and_return(:sv)
     end
 
