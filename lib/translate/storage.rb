@@ -161,6 +161,7 @@ class Translate::Storage
     files = (I18n.load_path + Dir.glob(File.join("config", "locales", "**","*.{rb,yml}"))).uniq.sort
     # Avoid application mode file paths
     files -= I18n.available_locales.map{|l| application_mode_file_path(l)}
+    files -= I18n.available_locales.map{|l| File.join("config", "locales", "#{l}.yml")}
     # Load the new translation file list
     I18n.load_path = files
     # Reset I18n to track the updated file list

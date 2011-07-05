@@ -175,4 +175,31 @@ namespace :translate do
       end      
     end
   end
+
+  desc "Apply I18n keys from locales/#locale.yml into the origin file where it should be"
+  task :save_to_origin => :environment do
+    Translate::Storage.mode = :origin
+    I18n.backend.send(:init_translations)
+    I18n.supported_locales.each do |locale|
+      filepath = File.join(Rails.root, "config", "locales", "#{locale}.yml")
+      if File.exists?(filepath)
+        new_translations = YAML::load(IO.read(filepath))
+        storage = Translate::Storage.new(locale)
+        hash = Translate::Keys.to_shallow_hash(new_translations[locale])
+        storage.write_to_file(hash)
+      end
+    end
+  end
+
+  desc "Dumps all translations of each language to a unique file con config/locales/#locale.yml"
+  task :save_to_application => :environment do
+    Translate::Storage.mode = :origin
+    I18n.backend.send(:init_translations)
+    I18n.supported_locales.each do |locale|
+      filepath = File.join(Rails.root, "config", "locales", "#{locale}.yml")
+      if translations = I18n.backend.send(:translations)[locale.to_sym]
+        Translate::File.new(filepath).write(locale => translations)
+      end
+    end
+  end
 end
