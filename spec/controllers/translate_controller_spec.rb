@@ -13,7 +13,7 @@ describe TranslateController do
       I18n.stub!(:valid_locales).and_return([:en, :sv])
       I18n.stub!(:default_locale).and_return(:sv)
     end
-    
+
     it "shows sorted paginated keys from the translate from locale and extracted keys by default" do
       get_page :index
       assigns(:from_locale).should == :sv
@@ -26,9 +26,9 @@ describe TranslateController do
     it "can be paginated with the page param" do
       get_page :index, :page => 2
       assigns(:files).should == files
-      assigns(:paginated_keys).should == ['home.page_title']      
+      assigns(:paginated_keys).should == ['home.page_title']
     end
-    
+
     it "accepts a key_pattern param with key_type=starts_with" do
       get_page :index, :key_pattern => 'articles', :key_type => 'starts_with'
       assigns(:files).should == files
@@ -48,18 +48,18 @@ describe TranslateController do
       assigns(:total_entries).should == 2
       assigns(:paginated_keys).should == ['articles.new.page_title']
     end
-    
+
     it "accepts a filter=translated param" do
       get_page :index, :filter => 'translated'
       assigns(:total_entries).should == 1
       assigns(:paginated_keys).should == ['vendor.foobar']
     end
-    
+
     it "accepts a filter=changed param" do
       log = mock(:log)
       old_translations = {:home => {:page_title => "Skapar ny artikel"}}
       log.should_receive(:read).and_return(Translate::File.deep_stringify_keys(old_translations))
-      Translate::Log.should_receive(:new).with(:sv, :en, {}).and_return(log)      
+      Translate::Log.should_receive(:new).with(:sv, :en, {}).and_return(log)
       get_page :index, :filter => 'changed'
       assigns(:total_entries).should == 1
       assigns(:keys).should == ["home.page_title"]
@@ -87,7 +87,7 @@ describe TranslateController do
         }
       })
     end
-    
+
     def files
       HashWithIndifferentAccess.new({
         :'home.page_title' => ["app/views/home/index.rhtml"],
@@ -96,7 +96,7 @@ describe TranslateController do
       })
     end
   end
-  
+
   describe "translate" do
     it "should store translations to I18n backend and then write them to a YAML file" do
       session[:from_locale] = :sv
@@ -110,18 +110,28 @@ describe TranslateController do
         :category => "Category"
       }
       key_param = {'articles.new.title' => "New Article", "category" => "Category"}
-      I18n.backend.should_receive(:store_translations).with(:en, translations)
+      I18n.backend.should_receive(:store_translations).once.with(:en, translations)
+      I18n.backend.should_receive(:store_translations).at_least(1)      
       storage = mock(:storage)
       storage.should_receive(:write_to_file)
-      Translate::Storage.should_receive(:new).with(:en).and_return(storage)
+      Translate::Storage.should_receive(:new).with(:en, :sv).and_return(storage)
       log = mock(:log)
       log.should_receive(:write_to_file)
       Translate::Log.should_receive(:new).with(:sv, :en, key_param.keys).and_return(log)
       post :translate, "key" => key_param
       response.should be_redirect
     end
+
   end
-  
+
+  def sample_translation_request
+    session[:from_locale] = :sv
+    session[:to_locale] = :en
+    key_param = {'articles.new.title' => "New Article", "category" => "Category"}
+    post :translate, "key" => key_param
+    response.should be_redirect
+  end
+
   def get_page(*args)
     get(*args)
     response.should be_success

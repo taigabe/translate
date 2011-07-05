@@ -5,7 +5,7 @@ describe Translate::Keys do
   before(:each) do
     I18n.stub!(:default_locale).and_return(:en)      
     @keys = Translate::Keys.new
-    Translate::Storage.stub!(:root_dir).and_return(i18n_files_dir)
+    Translate::Storage.stub!(:root_dir).and_return(tmp_i18n_files_dir)
   end
   
   describe "to_a" do
@@ -17,7 +17,7 @@ describe Translate::Keys do
   
   describe "to_hash" do
     it "return a hash with I18n keys and file lists" do
-      @keys.to_hash[:'article.key3'].should == ["vendor/plugins/translate/spec/files/translate/app/models/article.rb"]      
+      @keys.to_hash[:'article.key3'].should == ["vendor/plugins/translate/spec/files/translate/tmp/app/models/article.rb"]
     end
   end
 
@@ -45,7 +45,10 @@ describe Translate::Keys do
   
   describe "missing_keys" do
     before(:each) do
-      @file_path = File.join(i18n_files_dir, "config", "locales", "en.yml")
+      %w[app config locales public].each do |p|
+        FileUtils.copy_entry(i18n_files_dir + "/#{p}/", tmp_i18n_files_dir + "/#{p}/")
+      end
+      @file_path = File.join(tmp_i18n_files_dir, "config", "locales", "en.yml")
       Translate::File.new(@file_path).write({
         :en => {
           :home => {
@@ -60,7 +63,7 @@ describe Translate::Keys do
     end
     
     after(:each) do
-      FileUtils.rm(@file_path)
+      # => FileUtils.remove_entry(tmp_i18n_files_dir)
     end
     
     it "should return a hash with keys that are not in the locale file" do
@@ -175,5 +178,9 @@ describe Translate::Keys do
   
   def i18n_files_dir
     File.join(ENV['PWD'], "spec", "files", "translate")
+  end
+
+  def tmp_i18n_files_dir
+    File.join(ENV['PWD'], "spec", "files", "translate", "tmp")
   end
 end

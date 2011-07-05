@@ -6,3 +6,14 @@ def I18n.valid_locales
   I18n.backend.send(:init_translations) unless I18n.backend.initialized?
   backend.send(:translations).keys.reject { |locale| locale == :root }
 end
+
+I18n::Backend::Simple.send(:include, I18n::Backend::I18nTranslateBackend)
+
+config.after_initialize do
+  Translate::Storage.mode = if defined?(Ubiquo::Config) && Ubiquo::Config.option_exists?(:translate_mode)
+    Ubiquo::Config.get(:translate_mode)
+  else
+    :application
+  end
+end
+
