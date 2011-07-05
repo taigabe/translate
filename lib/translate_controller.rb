@@ -22,7 +22,8 @@ class TranslateController < ActionController::Base
     if params[:key].present?
       I18n.backend.store_translations(@to_locale, Translate::Keys.to_deep_hash(params[:key]))
       Translate::Storage.new(@to_locale, @from_locale).write_to_file(params[:key])
-      Translate::Log.new(@from_locale, @to_locale, params[:key].keys).write_to_file
+      # Disabled because we will use another approach directly in Translate::Storage
+      #Translate::Log.new(@from_locale, @to_locale, params[:key].keys).write_to_file
 
       force_init_translations # Force reload from YAML file
       flash[:notice] = "Translations stored"

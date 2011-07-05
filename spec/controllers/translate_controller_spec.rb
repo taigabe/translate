@@ -115,9 +115,11 @@ describe TranslateController do
       storage = mock(:storage)
       storage.should_receive(:write_to_file)
       Translate::Storage.should_receive(:new).with(:en, :sv).and_return(storage)
-      log = mock(:log)
-      log.should_receive(:write_to_file)
-      Translate::Log.should_receive(:new).with(:sv, :en, key_param.keys).and_return(log)
+      # Disabled because we will use another approach directly in Translate::Storage
+      #log = mock(:log)
+      #log.should_receive(:write_to_file)
+      #Translate::Log.should_receive(:new).with(:sv, :en, key_param.keys).and_return(log)      
+      Translate::Log.should_not_receive(:new)
       post :translate, "key" => key_param
       response.should be_redirect
     end
