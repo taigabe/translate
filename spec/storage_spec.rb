@@ -175,7 +175,7 @@ describe Translate::Storage do
       File.stub!(:exists?).and_return(true)
       
       assert @storage.decide_filenames("not_important.key").first.include?(
-        "/config/locales/application_external_en.yml")
+        "/config/locales/application_external_en.yml.commit")
                     
     end
   end

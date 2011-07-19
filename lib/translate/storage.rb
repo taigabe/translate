@@ -202,7 +202,7 @@ class Translate::Storage
   end
 
   def self.external_application_file_path locale
-    File.join(Translate::Storage.root_dir, "config", "locales", "application_external_#{locale}.yml")
+    File.join(Translate::Storage.root_dir, "config", "locales", "application_external_#{locale}.yml.commit")
   end
 
   def self.file_paths(locale)
