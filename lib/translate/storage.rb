@@ -3,6 +3,8 @@ class Translate::Storage
   attr_accessor :from_locale
   cattr_accessor :mode
 
+  class OriginTranslationNotFound < StandardError; end
+
   def initialize(locale, from_locale = nil)
     self.locale = locale.to_sym
     self.from_locale = from_locale.to_sym if from_locale
@@ -10,13 +12,17 @@ class Translate::Storage
 
   #
   # Write a list of translations to filesystem
+  # Returns a hash of paths and the keys that have been written
   #
-  #
-  def write_to_file keys    
+  def write_to_file keys
+    init_translations_and_ignore_app_mode_file_dump if self.class.mode == :origin
+    # Hash to capture the files updated on origin mode and the keys for each one
+    result = {}
     keys.each do |key, value|
       #
       # Search the files where the translation will be applied to
-      decide_filenames(key).each do |filename|
+      decide_filenames(key).each do |filename|        
+        (result[filename] ||= []) << key
         # Apply the current translation to the filenames
         #
         # It will save a key 'ubiquo.categories.index.title' with a value 'Title'
@@ -48,8 +54,9 @@ class Translate::Storage
         #
         # Save to file updated to disk
         Translate::File.new(filename).write(hash)
-      end
+      end      
     end
+    result
   end
 
   def find_or_create_origin_filename(filename, found_locale)
@@ -69,7 +76,7 @@ class Translate::Storage
     #     ie:
     #       $PROJECT_HOME/vendor/plugins/ubiquo_i18n/config/locales/es/models/locale.yml
     #
-    suposed_filename = filename.gsub(%r["(.*(#{found_locale}.*)*)(#{found_locale})(.*)"], "\1#{locale}\4")
+    suposed_filename = filename.sub(/(.*)\/#{found_locale}\//, "\\1/#{locale}/")
 
     # The file may not exist, so we check it and create an empty YAML file if not
     if File.exists?(suposed_filename)
@@ -92,14 +99,14 @@ class Translate::Storage
     if self.class.mode == :origin
       filename, found_locale = get_translation_origin_filename(key)
       # Doesn't exist the translation for current locale, but it does in another
-      if found_locale.to_s != self.locale.to_s
+      if found_locale.present? && found_locale.to_s != self.locale.to_s
         # We try to generate the filename replacing the '/existing_locale/' section
         # in path for the new_locale
-        find_or_create_origin_filename(filename, found_locale)
+        filename = find_or_create_origin_filename(filename, found_locale)
       end
-      #
-      # We add the found or computed filename to the list of file to apply the translation
-      filenames << filename
+      if filename
+        filenames << filename
+      end
     end
     #
     # Normal app mode, the translation will be dumped together to /config/locales/#{locale}.yml to keep
@@ -110,16 +117,13 @@ class Translate::Storage
     #
     # Path to the backup file of the current translation request/transaction
     #
-    filenames << log_file_path   
+    filenames << log_file_path
 
     filenames
   end
 
   # Must ignore  file_path = /config/locales/#{locale}.yml
   def get_translation_origin_filename key, options = {}
-
-    # We avoid loading the app_mode file dump path
-    init_translations_and_ignore_app_mode_file_dump
 
     # List of locale where the translation will be looked for
     locales = options[:locales] || ([self.locale] + I18n.available_locales)
@@ -132,12 +136,11 @@ class Translate::Storage
       # There are yml files, event translation files that do not start
       # with a locale, so we must avoid them
       #
-      # Fin the translation in the current_locale
+      # Find the translation in the current_locale
       translation = I18n.t!(key, :locale => current_locale)
       # If we found metadata we return the filename
       if (metadata = translation.instance_variable_get(:@metadata)).present? &&
           metadata[:filename].present?
-        init_translations_and_ignore_app_mode_file_dump
         return metadata[:filename], current_locale
       end
     # The translation do not exists for the locale checked
@@ -151,7 +154,9 @@ class Translate::Storage
       retry if current_locale
     end
 
-    raise "Error, not origin translation found for key #{key}"
+    # puts "Forgetting about key #{key} we could not find the origin translation
+    #  (or the unique valid translation was in the dump file)"
+    nil
   end
 
   #
@@ -165,6 +170,7 @@ class Translate::Storage
     # Load the new translation file list
     I18n.load_path = files
     # Reset I18n to track the updated file list
+    I18n.reload!
     I18n.backend.send(:init_translations)
   end
 
@@ -192,7 +198,7 @@ class Translate::Storage
     Rails.root
   end
 
-  # TODO explain
+  # Return a path to the dump file of the locale provided
   def application_mode_file_path locale = locale
     File.join(Translate::Storage.root_dir, "config", "locales", "#{locale}.yml")
   end

@@ -82,12 +82,10 @@ describe Translate::Storage do
     end
 
     it "replace a existing path" do
-      @storage.should_receive(:find_or_create_origin_filename).
-              with('config/locales/es/exists/translations.yml', 'es').
-              and_return('config/locales/en/exists/translations.yml')
-
       File.stub!(:exists?).and_return(true)
-      @storage.find_or_create_origin_filename('config/locales/es/exists/translations.yml', 'es')
+      @storage.find_or_create_origin_filename(
+        'config/locales/es/exists/translations.yml', 'es'
+      ).should == 'config/locales/en/exists/translations.yml'
     end
 
     it "replace a non existing path creating it" do
@@ -142,18 +140,18 @@ describe Translate::Storage do
 
       @storage.stub!(:get_translation_origin_filename).and_return(["path", "es"])
       @storage.should_receive(:find_or_create_origin_filename).with("path", "es").
-        and_return("path_ok_return_value_discarted")
+        and_return("origin_path")
 
       File.stub!(:exists?).and_return(true)
       @storage.should_not_receive(:create_empty_translations_file)
       @storage.should_receive(:log_file_path).and_return("/log_file_path")
 
-      assert_equal ["path", @storage.application_mode_file_path, "/log_file_path"],
+      assert_equal ["origin_path", @storage.application_mode_file_path, "/log_file_path"],
                     @storage.decide_filenames("not_important.key")
     end
 
     it "returns the log backup file path, the dump file and the origin file name as the mode is origin and
-    the translation file did not exists" do
+    the translation existed" do
       Translate::Storage.mode = :origin
 
       @storage.stub!(:get_translation_origin_filename).and_return(["path", "en"])
