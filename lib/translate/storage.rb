@@ -180,7 +180,7 @@ class Translate::Storage
   #
   def log_file_path
     @translation_session ||= "#{Time.now.strftime("%Y-%m-%d-%H-%M-%S-%3N").parameterize}_#{rand(2**8)}"
-    file_path = File.join(self.class.root_dir, "config", "locales", "log", locale.to_s, "#{@translation_session}.yml.backup")
+    file_path = File.join(self.class.root_dir, "tmp", "locales", "log", locale.to_s, "#{@translation_session}.yml.backup")
     create_empty_translations_file(file_path) if !File.exists?(file_path)
     file_path
   end
