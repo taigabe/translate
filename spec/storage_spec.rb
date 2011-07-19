@@ -145,6 +145,7 @@ describe Translate::Storage do
       File.stub!(:exists?).and_return(true)
       @storage.should_not_receive(:create_empty_translations_file)
       @storage.should_receive(:log_file_path).and_return("/log_file_path")
+      @storage.stub!(:replace_external_to_application_file_paths).and_return("path")
 
       assert_equal ["origin_path", @storage.application_mode_file_path, "/log_file_path"],
                     @storage.decide_filenames("not_important.key")
@@ -160,9 +161,22 @@ describe Translate::Storage do
       File.stub!(:exists?).and_return(true)
       @storage.should_not_receive(:create_empty_translations_file)
       @storage.should_receive(:log_file_path).and_return("/log_file_path")
+      @storage.stub!(:replace_external_to_application_file_paths).and_return("path")
 
       assert_equal ["path", @storage.application_mode_file_path, "/log_file_path"],
                     @storage.decide_filenames("not_important.key")
+    end
+
+    it "returns the log backup file path, the dump file and the path to external application files for english" do
+      Translate::Storage.mode = :origin
+
+
+      @storage.stub!(:get_translation_origin_filename).and_return(["/tmp/path_to_file_external_to_the_project", "en"])
+      File.stub!(:exists?).and_return(true)
+      
+      assert @storage.decide_filenames("not_important.key").first.include?(
+        "/config/locales/application_external_en.yml")
+                    
     end
   end
   

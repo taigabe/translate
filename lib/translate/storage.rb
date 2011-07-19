@@ -98,6 +98,9 @@ class Translate::Storage
     # file where those where setup, including plugin folders
     if self.class.mode == :origin
       filename, found_locale = get_translation_origin_filename(key)
+      # If filename is outside rail.root send it to config/locales/external_#{translations_locale_name}.yml
+      filename = replace_external_to_application_file_paths(filename) if filename.present?
+
       # Doesn't exist the translation for current locale, but it does in another
       if found_locale.present? && found_locale.to_s != self.locale.to_s
         # We try to generate the filename replacing the '/existing_locale/' section
@@ -188,6 +191,18 @@ class Translate::Storage
   def create_empty_translations_file file_path
     FileUtils.mkdir_p File.dirname(file_path)
     Translate::File.new(file_path).write(Translate::File.deep_stringify_keys({self.locale => {}}))
+  end
+
+  def replace_external_to_application_file_paths path
+    unless File.expand_path(path).include?(File.expand_path(self.class.root_dir))
+      path = self.class.external_application_file_path(locale)
+      create_empty_translations_file(path) if !File.exists?(path)
+    end
+    path
+  end
+
+  def self.external_application_file_path locale
+    File.join(Translate::Storage.root_dir, "config", "locales", "application_external_#{locale}.yml")
   end
 
   def self.file_paths(locale)
