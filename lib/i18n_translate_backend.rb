@@ -15,10 +15,12 @@ module I18n
         end
 
         def translate(locale, key, options = {})
-          entry = super(locale, key, options)
-          entry_with_metadata = lookup(locale, key, options[:scope], options)
-          if (metadata = entry_with_metadata.instance_variable_get(:@metadata)).present?
-            entry.instance_variable_set(:@metadata, metadata)
+          if entry = super(locale, key, options)
+            entry_with_metadata = lookup(locale, key, options[:scope], options)
+            if (metadata = entry_with_metadata.instance_variable_get(:@metadata)).present?
+              entry = entry.dup if entry.frozen?
+              entry.instance_variable_set(:@metadata, metadata)
+            end
           end
           entry
         end

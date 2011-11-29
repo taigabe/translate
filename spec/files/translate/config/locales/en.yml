@@ -1,5 +1,14 @@
----
 en:
   article:
     title: "One Article"
     category: "Category"
+    another: "another"
+    status_list: [ :Draft, :Prepared, :Published ]
+    status_symbol_real_hash: {
+      draft: "D",
+      prepared: "P",
+      published: "U" }
+    status_symbol:
+      draft: "D"
+      prepared: "P"
+      published: "U"

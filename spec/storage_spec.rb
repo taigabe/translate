@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/spec_helper'
 describe Translate::Storage do
   describe "get translation origin filename" do
     before(:each) do
+      I18n.reload!
       @storage = Translate::Storage.new(:en)
     end
     after(:each) do
@@ -11,21 +12,31 @@ describe Translate::Storage do
 
     it "should read the origin file name" do
       I18n.backend.load_translations(*files_path)
-      @storage.should_receive(:get_translation_origin_filename).and_return(files_path.last)
-      @storage.get_translation_origin_filename('article.title')
+      @storage.get_translation_origin_filename('article.title').should == [files_path.last, :en]
     end
 
     it "should raise an error for unexistent localization" do
       I18n.backend.load_translations(*files_path)
-      @storage.should_receive(:get_translation_origin_filename).with('article.invented.title').should raise_error
-      @storage.get_translation_origin_filename('article.invented.title')
+      @storage.get_translation_origin_filename('article.invented.title').should raise_error
     end
 
     it "should get origin filename from a existent translation" do
       I18n.backend.load_translations(*files_path)
       @storage = Translate::Storage.new(:es)
-      @storage.should_receive(:get_translation_origin_filename).and_return(files_path(:es).last)
-      @storage.get_translation_origin_filename('article.title')
+      assert_equal [files_path(:en).last, :en],
+                    @storage.get_translation_origin_filename('article.title')
+                   
+    end
+
+    it "should get origin filename of frozen values" do
+      I18n.backend.load_translations(*files_path(:en))
+      @storage = Translate::Storage.new(:en)
+      I18n.t("article.status_list", :locale => 'en')[1].should == :Prepared
+      I18n.backend.send(:translations)[:en][:article][:status_list].freeze
+      
+      @storage.get_translation_origin_filename('article.status_list')
+      assert_equal [files_path(:en).last, :en],
+                    @storage.get_translation_origin_filename('article.status_list')      
     end
 
   end
@@ -173,13 +184,13 @@ describe Translate::Storage do
 
       @storage.stub!(:get_translation_origin_filename).and_return(["/tmp/path_to_file_external_to_the_project", "en"])
       File.stub!(:exists?).and_return(true)
-      
+
       assert @storage.decide_filenames("not_important.key").first.include?(
         "/config/locales/application_external_en.yml.commit")
-                    
+
     end
   end
-  
+
   describe "init_translations_and_ignore_app_mode_file_dump" do
     before(:each) do
       @storage = Translate::Storage.new(:en)
