@@ -122,6 +122,22 @@ describe TranslateController do
       response.should be_redirect
     end
 
+
+    it "after translation should redirect with the current from and to locale supplied" do
+      translations = {
+        :articles => {
+          :new => {
+            :title => "New Article"
+          }
+        },
+        :category => "Category"
+      }
+      key_param = {'articles.new.title' => "New Article", "category" => "Category"}
+
+      post :translate, 'key' => key_param, :from_locale => :one, :to_locale => :another
+      response.should redirect_to(:action => :index, :from_locale => 'one', :to_locale => 'another')
+    end
+
   end
 
   def sample_translation_request

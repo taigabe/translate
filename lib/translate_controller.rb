@@ -30,7 +30,7 @@ class TranslateController < ActionController::Base
     else
       flash[:notice] = "No translations supplied"
     end
-    redirect_to params.slice(:filter, :sort_by, :key_type, :key_pattern, :text_type, :text_pattern).merge({:action => :index})
+    redirect_to params.slice(:filter, :sort_by, :key_type, :key_pattern, :text_type, :text_pattern, :to_locale, :from_locale).merge({:action => :index})
   end
 
   def reload
