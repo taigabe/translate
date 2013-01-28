@@ -148,12 +148,8 @@ class TranslateController < ActionController::Base
   end
 
   def set_locale
-    session[:from_locale] ||= default_locale
-    session[:to_locale] ||= :en
-    session[:from_locale] = params[:from_locale] if params[:from_locale].present?
-    session[:to_locale] = params[:to_locale] if params[:to_locale].present?
-    @from_locale = session[:from_locale].to_sym
-    @to_locale = session[:to_locale].to_sym
+    @from_locale = params[:from_locale].present? ? params[:from_locale] : default_locale
+    @to_locale   = params[:to_locale].present?   ? params[:to_locale]   : :en
   end
 
   def old_from_text(key)

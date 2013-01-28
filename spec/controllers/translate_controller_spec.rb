@@ -99,8 +99,6 @@ describe TranslateController do
 
   describe "translate" do
     it "should store translations to I18n backend and then write them to a YAML file" do
-      session[:from_locale] = :sv
-      session[:to_locale] = :en
       translations = {
         :articles => {
           :new => {
@@ -111,31 +109,34 @@ describe TranslateController do
       }
       key_param = {'articles.new.title' => "New Article", "category" => "Category"}
       I18n.backend.should_receive(:store_translations).once.with(:en, translations)
-      I18n.backend.should_receive(:store_translations).at_least(1)      
+      I18n.backend.should_receive(:store_translations).at_least(1)
       storage = mock(:storage)
       storage.should_receive(:write_to_file)
       Translate::Storage.should_receive(:new).with(:en, :sv).and_return(storage)
       # Disabled because we will use another approach directly in Translate::Storage
       #log = mock(:log)
       #log.should_receive(:write_to_file)
-      #Translate::Log.should_receive(:new).with(:sv, :en, key_param.keys).and_return(log)      
+      #Translate::Log.should_receive(:new).with(:sv, :en, key_param.keys).and_return(log)
       Translate::Log.should_not_receive(:new)
-      post :translate, "key" => key_param
+      post :translate, "key" => key_param, :from_locale => :sv, :to_locale => :en
       response.should be_redirect
     end
 
   end
 
   def sample_translation_request
-    session[:from_locale] = :sv
-    session[:to_locale] = :en
     key_param = {'articles.new.title' => "New Article", "category" => "Category"}
-    post :translate, "key" => key_param
+    post :translate, "key" => key_param, :from_locale => :sv, :to_locale => :en
     response.should be_redirect
   end
 
   def get_page(*args)
-    get(*args)
+    options = args.extract_options!
+    options.reverse_merge({
+      :from_locale => :sv,
+      :to_locale => :en
+    })
+    get(args.first, options)
     response.should be_success
   end
 end

@@ -6,6 +6,8 @@
     <%= hidden_field_tag(:key_pattern, params[:key_pattern], :id => "hid_key_pattern") %>
     <%= hidden_field_tag(:text_type, params[:text_type], :id => "hid_text_type") %>
     <%= hidden_field_tag(:text_pattern, params[:text_pattern], :id => "hid_text_pattern") %>
+    <%= hidden_field_tag(:from_locale, from_locale) %>
+    <%= hidden_field_tag(:to_locale, to_locale) %>
   </div>
   <div class="translations">
     <h2>Translations from <%= from_locale %> to <%= to_locale %></h2>
