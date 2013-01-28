@@ -18,8 +18,8 @@
         <%= hidden_field_tag(:filter, params[:filter]) %>
         <%= hidden_field_tag(:sort_by, params[:sort_by]) %>
         <label>Translate from</label>
-        <%= select_tag(:from_locale, options_for_select(I18n.available_locales, from_locale.to_sym)) %> <span>to</span>
-        <%= select_tag(:to_locale, options_for_select(I18n.supported_locales, to_locale.to_sym)) %>
+        <%= select_tag(:from_locale, options_for_select(I18n.supported_locales, from_locale.to_s)) %> <span>to</span>
+        <%= select_tag(:to_locale, options_for_select(I18n.supported_locales, to_locale.to_s)) %>
         <%= submit_tag "Display" %>
       </p>
     </div>
