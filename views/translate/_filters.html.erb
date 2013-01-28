@@ -1,0 +1,49 @@
+<%
+  show_filters = ["all", "untranslated", "translated"]
+  show_filters << "changed" if from_locale != to_locale
+%>
+<fieldset>
+  <legend>Search filter</legend>
+  <div id="show-sort">
+    <p>
+      <label>Show:</label> <%=  simple_filter(show_filters) %>
+    </p>
+    <p>
+      <label>Sort by:</label> <%= simple_filter(["key", "text"], 'sort_by') %>
+   </p>
+  </div>
+  <% form_tag(params, :method => :get) do %>
+    <div id="languages">
+      <p>
+        <%= hidden_field_tag(:filter, params[:filter]) %>
+        <%= hidden_field_tag(:sort_by, params[:sort_by]) %>
+        <label>Translate from</label>
+        <%= select_tag(:from_locale, options_for_select(I18n.available_locales, from_locale.to_sym)) %> <span>to</span>
+        <%= select_tag(:to_locale, options_for_select(I18n.supported_locales, to_locale.to_sym)) %>
+        <%= submit_tag "Display" %>
+      </p>
+    </div>
+    <div id="filter-pattern">
+      <p>
+        <label for="key_pattern_value">Key</label>
+        <%= select_tag(:key_type, options_for_select([["contains", 'contains'], ["starts with", 'starts_with']], params[:key_type])) %>
+        <%= text_field_tag(:key_pattern, params[:key_pattern], :size => 50, :id => "key_pattern_value", :class => "text-default") %>
+      </p>
+      <p>
+        <label for="text_pattern_value">Text</label>
+        <%= select_tag(:text_type, options_for_select(['contains', 'equals'], params[:text_type])) %>
+        <%= text_field_tag(:text_pattern, params[:text_pattern], :size => 50, :id => "text_pattern_value", :class => "text-default") %>	     
+      </p>
+      <p>
+        <%= submit_tag "Search" %>
+        <%= link_to "clear", params.merge({:text_pattern => nil, :key_pattern => nil}) %>
+      </p>
+    </div>
+  <% end %>
+  <p class="hits">
+    Found <strong><%= total_entries %></strong> messages
+  </p>
+  <p>
+    <%= link_to "Reload messages", translate_reload_path %>
+  </p>
+</fieldset>

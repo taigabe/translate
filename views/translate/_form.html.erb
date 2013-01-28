@@ -1,0 +1,22 @@
+<% form_tag(translate_path) do %>
+  <div>
+    <%= hidden_field_tag(:filter, params[:filter], :id => "hid_filter") %>
+    <%= hidden_field_tag(:sort_by, params[:sort_by], :id => "hid_sort_by") %>
+    <%= hidden_field_tag(:key_type, params[:key_type], :id => "hid_key_type") %>
+    <%= hidden_field_tag(:key_pattern, params[:key_pattern], :id => "hid_key_pattern") %>
+    <%= hidden_field_tag(:text_type, params[:text_type], :id => "hid_text_type") %>
+    <%= hidden_field_tag(:text_pattern, params[:text_pattern], :id => "hid_text_pattern") %>
+  </div>
+  <div class="translations">
+    <h2>Translations from <%= from_locale %> to <%= to_locale %></h2>
+    <p class="translate">
+      <%= submit_tag "Save Translations" %>
+    </p>
+    <% paginated_keys.each do |key| %>
+      <%= render 'translation', :from_locale => from_locale, :to_locale => to_locale, :key => key, :files => files %>
+    <% end %>
+    <p class="translate">
+      <%= submit_tag "Save Translations" %>
+    </p>
+  </div>
+<% end %>
