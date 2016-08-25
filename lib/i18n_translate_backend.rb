@@ -30,6 +30,7 @@ module I18n
         def deep_add_metadata value, metadata
           value.each_pair do |key, v|
             v = deep_add_metadata(v, metadata) if v.is_a?(Hash)
+            v = v.to_s if v.frozen?
             v.instance_variable_set(:@metadata, metadata.clone)
           end
         end
